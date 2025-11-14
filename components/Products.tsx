@@ -1,68 +1,45 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { productsData } from '../constants';
-import { Product } from '../types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { productsData, productCategories } from '../constants';
+import { Product, ProductCategory, CartItem } from '../types';
+import Cart from './Cart';
+import BookingModal from './BookingModal';
 
-const ProductCard: React.FC<{ product: Product; onSelect: (product: Product) => void }> = ({ product, onSelect }) => (
-    <div 
-        className="bg-white rounded-lg shadow-md border border-gray-200/50 p-6 flex flex-col h-full cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2"
-        onClick={() => onSelect(product)}
-    >
-        <div className="flex-grow">
-            <p className="text-sm text-[#a78b8b] mb-2 font-medium tracking-wide uppercase">{product.category}</p>
-            <h3 className="font-serif font-semibold text-xl text-gray-800 mb-4 h-16">{product.name}</h3>
-        </div>
-        <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
-            <span className="font-bold text-2xl text-[#8a6a6a]">{product.prices[0].price}</span>
-            <span className="text-sm text-gray-500">{product.prices[0].size}</span>
-        </div>
-    </div>
-);
-
-const ProductModal: React.FC<{ product: Product | null; onClose: () => void }> = ({ product, onClose }) => {
-    if (!product) return null;
-
+const ProductCard: React.FC<{ 
+    product: Product; 
+    category: ProductCategory; 
+    onSelect: (product: Product) => void;
+    isSelected: boolean;
+}> = ({ product, category, onSelect, isSelected }) => {
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <div className="p-8 md:p-12">
-                    <div className="flex justify-between items-start mb-6">
-                        <div>
-                            <p className="text-base text-[#a78b8b] mb-2 font-medium tracking-wide uppercase">{product.category}</p>
-                            <h2 className="text-4xl font-bold text-gray-800">{product.name}</h2>
-                        </div>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors -mt-4 -mr-4 p-4">
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                    <p className="text-gray-600 mb-8 text-lg">{product.description}</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <div>
-                            <h4 className="font-semibold text-xl text-gray-800 mb-3 border-b pb-2">Активные компоненты:</h4>
-                            <ul className="list-disc list-inside text-gray-600 space-y-2 mt-4">
-                                {product.activeComponents.map((comp, i) => <li key={i}>{comp}</li>)}
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-xl text-gray-800 mb-3 border-b pb-2">Форма выпуска:</h4>
-                            <p className="text-gray-600 mt-4">{product.releaseForm}</p>
-                        </div>
-                    </div>
+        <div 
+            className="group relative flex flex-col rounded-3xl p-6 overflow-hidden transition-all duration-500 ease-in-out border border-[--border] h-[250px] hover:h-[520px] bg-white"
+            style={{ '--category-color': category.color } as React.CSSProperties}
+        >
+            <div className="absolute inset-0 transition-opacity duration-500 opacity-20 group-hover:opacity-100" style={{ background: `radial-gradient(circle at top left, var(--category-color) 0%, transparent 50%)`}}></div>
 
-                    <div className="mt-auto">
-                        <h4 className="font-semibold text-xl text-gray-800 mb-4 border-b pb-2">Варианты покупки:</h4>
-                        <div className="space-y-3">
-                            {product.prices.map((p, i) => (
-                                <div key={i} className="flex justify-between items-center bg-[#f9f5f2] p-4 rounded-lg">
-                                    <div>
-                                        <span className="text-gray-700 font-medium text-lg">{p.size}</span>
-                                        {p.tag && <span className="ml-3 text-xs bg-[#a78b8b] text-white px-2 py-1 rounded-full font-semibold uppercase tracking-wider">{p.tag}</span>}
-                                    </div>
-                                    <span className="font-bold text-2xl text-[#8a6a6a]">{p.price}</span>
-                                </div>
-                            ))}
-                        </div>
+            <div className="relative z-10 flex flex-col h-full">
+                <div className="flex-shrink-0">
+                    <p className="text-sm font-medium tracking-widest uppercase" style={{ color: `var(--category-color)` }}>{category.name}</p>
+                    <h3 className="font-serif font-semibold text-2xl text-[--text] leading-snug mt-3">{product.name}</h3>
+                    {product.subtitle && <p className="text-xs text-gray-400 font-light tracking-widest mt-1 uppercase">{product.subtitle}</p>}
+                </div>
+                
+                <div className="flex-grow flex flex-col justify-center overflow-hidden opacity-0 max-h-0 group-hover:opacity-100 group-hover:max-h-full transition-all duration-700 ease-in-out delay-100">
+                     <p className="text-[--gray] text-base leading-relaxed font-light my-4">{product.description}</p>
+                     <button 
+                        onClick={() => onSelect(product)}
+                        className={`w-full mt-auto py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 transform hover:scale-105 ${isSelected ? 'bg-[--primary] text-white shadow-lg' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+                     >
+                        {isSelected ? '✓ В корзине' : 'Добавить в корзину'}
+                     </button>
+                </div>
+
+                <div className="mt-auto flex-shrink-0 flex justify-between items-end">
+                    <div className="flex items-baseline gap-2">
+                        <span className="font-bold text-3xl font-sans" style={{color: `var(--category-color)`}}>{product.prices[0].price}</span>
+                        {product.prices.length > 1 && <span className="text-sm text-gray-500">и другие</span>}
                     </div>
+                    <span className="text-base text-[--gray] font-light">{product.prices[0].size}</span>
                 </div>
             </div>
         </div>
@@ -71,7 +48,11 @@ const ProductModal: React.FC<{ product: Product | null; onClose: () => void }> =
 
 
 const Products: React.FC = () => {
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [activeCategory, setActiveCategory] = useState<string>(productCategories[0].id);
+    const [selectedProducts, setSelectedProducts] = useState<CartItem[]>([]);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const [hadProcedure, setHadProcedure] = useState(false);
+    
     const sectionRef = useRef<HTMLElement>(null);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -79,49 +60,134 @@ const Products: React.FC = () => {
         const observer = new IntersectionObserver(
         ([entry]) => {
             if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.unobserve(entry.target);
+                setIsVisible(true);
+                observer.unobserve(entry.target);
             }
-        },
-        { threshold: 0.1 }
-        );
+        }, { threshold: 0.1 });
 
-        if (sectionRef.current) {
-        observer.observe(sectionRef.current);
-        }
-
-        return () => {
-        if (sectionRef.current) {
-            observer.unobserve(sectionRef.current);
-        }
-        };
+        if (sectionRef.current) observer.observe(sectionRef.current);
+        return () => { if (sectionRef.current) observer.unobserve(sectionRef.current) };
     }, []);
+    
+    const filteredProducts = useMemo(() => {
+        return productsData.filter(p => p.categoryId === activeCategory);
+    }, [activeCategory]);
 
-    useEffect(() => {
-        if (selectedProduct) {
-            document.body.style.overflow = 'hidden';
+    const handleSelectProduct = (product: Product) => {
+        setSelectedProducts(prev => {
+            const isSelected = prev.some(p => p.id === product.id);
+            if (isSelected) {
+                return prev.filter(p => p.id !== product.id);
+            } else {
+                const newCartItem: CartItem = {
+                    id: product.id,
+                    name: product.name,
+                    price: product.prices[0].price,
+                    quantity: 1,
+                };
+                return [...prev, newCartItem];
+            }
+        });
+    };
+
+    const handleQuantityChange = (productId: number | string, newQuantity: number) => {
+        if (newQuantity <= 0) {
+            setSelectedProducts(prev => prev.filter(p => p.id !== productId));
         } else {
-            document.body.style.overflow = 'unset';
+            setSelectedProducts(prev => 
+                prev.map(p => p.id === productId ? { ...p, quantity: newQuantity } : p)
+            );
         }
-    }, [selectedProduct]);
+    };
+
+    const handleRemoveProduct = (product: CartItem) => {
+        setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
+    };
+
+    const calculation = useMemo(() => {
+        const total = selectedProducts.reduce((sum, item) => sum + parseInt(item.price.replace(/\s/g, '').replace('р', '')) * item.quantity, 0);
+        const discount = hadProcedure ? 0.10 : 0;
+        const discountAmount = Math.floor(total * discount);
+        const finalPrice = total - discountAmount;
+        return { total, discount, discountAmount, finalPrice, discountLabel: 'Скидка после процедуры (10%)' };
+    }, [selectedProducts, hadProcedure]);
+
+    const discountCheckbox = (
+        <div className="bg-[--background] p-4 rounded-lg my-6 border border-[--border]">
+            <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={hadProcedure}
+                    onChange={(e) => setHadProcedure(e.target.checked)}
+                    className="h-5 w-5 rounded border-gray-300 text-[--primary] focus:ring-[--primary]"
+                    style={{boxShadow: 'none'}}
+                />
+                <span className="text-sm text-[--text] font-medium">Скидка 10% после процедуры</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-1 pl-8 font-light">Отметьте, если вы приобретаете косметику в день проведения любой косметологической процедуры или эпиляции.</p>
+        </div>
+    );
 
     return (
-        <section ref={sectionRef} id="products" className={`py-16 md:py-24 bg-[#f9f5f2] fade-in-section ${isVisible ? 'is-visible' : ''}`}>
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12">
-                    <h2 className="text-4xl font-bold text-gray-800">Профессиональная косметика SKIN SYNERGY</h2>
-                    <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-                        Линейка профессиональных средств для домашнего ухода, разработанная для поддержания здоровья и красоты вашей кожи.
-                    </p>
+        <>
+            <section ref={sectionRef} id="products" className={`py-24 md:py-40 bg-[--background] fade-in-section ${isVisible ? 'is-visible' : ''}`}>
+                <div className="container">
+                    <div className="text-center mb-16 max-w-4xl mx-auto">
+                        <h2 className="text-5xl md:text-7xl font-serif font-bold text-[--text]">Профессиональная косметика</h2>
+                        <p className="mt-6 text-xl text-[--gray] font-light">
+                            Линейка средств SKIN SYNERGY для домашнего ухода, разработанная для поддержания здоровья и красоты вашей кожи.
+                        </p>
+                    </div>
+                    
+                    <div className="flex flex-col lg:flex-row lg:gap-20 items-start">
+                        <div className="w-full lg:w-2/3">
+                            <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-16">
+                                {productCategories.map(category => (
+                                    <button 
+                                        key={category.id}
+                                        onClick={() => setActiveCategory(category.id)}
+                                        className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 border ${activeCategory === category.id ? 'text-white border-transparent' : 'bg-transparent text-[--gray] border-[--border] hover:bg-[--section-bg] hover:text-[--text]'}`}
+                                        style={activeCategory === category.id ? { backgroundColor: category.color } : {}}
+                                    >
+                                        {category.name}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+                                {filteredProducts.map(product => {
+                                    const category = productCategories.find(c => c.id === product.categoryId);
+                                    if (!category) return null;
+                                    const isSelected = selectedProducts.some(p => p.id === product.id);
+                                    return <ProductCard key={product.id} product={product} category={category} onSelect={handleSelectProduct} isSelected={isSelected} />
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="w-full lg:w-1/3 mt-12 lg:mt-0">
+                            <div className="lg:sticky lg:top-36">
+                                <Cart
+                                    selectedServices={selectedProducts}
+                                    calculation={calculation}
+                                    onRemoveService={handleRemoveProduct}
+                                    onQuantityChange={handleQuantityChange}
+                                    onCheckout={() => setIsBookingModalOpen(true)}
+                                    customContent={selectedProducts.length > 0 ? discountCheckbox : null}
+                                    unitName={{ singular: 'товар', plural: 'товара', genitive: 'товаров' }}
+                                    totalQuantity={selectedProducts.reduce((sum, item) => sum + item.quantity, 0)}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {productsData.map(product => (
-                        <ProductCard key={product.id} product={product} onSelect={setSelectedProduct} />
-                    ))}
-                </div>
-            </div>
-            <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
-        </section>
+            </section>
+            <BookingModal
+                isOpen={isBookingModalOpen}
+                onClose={() => setIsBookingModalOpen(false)}
+                selectedServices={selectedProducts}
+                calculation={calculation}
+            />
+        </>
     );
 };
 

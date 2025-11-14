@@ -8,39 +8,102 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Yeseva+One&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --background: #FDFBF9;
+        --section-bg: #F7F2EF;
+        --text: #2E282A;
+        --primary: #B19175;
+        --primary-light: #EAE3DD;
+        --border: rgba(46, 40, 42, 0.1);
+        --white: #FFFFFF;
+        --gray: #6B7280;
+      }
       html {
         scroll-behavior: smooth;
       }
       body {
         font-family: 'Montserrat', sans-serif;
-        color: #333333;
+        color: var(--text);
+        background-color: var(--background);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.5s ease;
       }
       h1, h2, h3, h4, h5, h6, .font-serif {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Yeseva One', serif;
+      }
+      .container {
+        max-width: 1320px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
       }
       .fade-in-section {
         opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        transform: translateY(30px);
+        transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
       }
       .fade-in-section.is-visible {
         opacity: 1;
         transform: translateY(0);
       }
-      @keyframes subtle-pulse {
+      .btn {
+        padding: 0.85rem 2.5rem;
+        border-radius: 9999px;
+        font-weight: 500;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        display: inline-block;
+        letter-spacing: 0.05em;
+        border: 1px solid transparent;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+      }
+      .btn-primary {
+        background-color: var(--primary);
+        color: var(--white);
+      }
+      .btn-primary:hover {
+        background-color: #A07F63;
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(177, 145, 117, 0.25);
+      }
+      .btn-secondary {
+        background-color: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .btn-secondary:hover {
+        background-color: var(--text);
+        color: var(--white);
+        border-color: var(--text);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(46, 40, 42, 0.15);
+      }
+       @keyframes subtle-pulse {
         0%, 100% {
           transform: scale(1);
-          box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+          box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4);
         }
         50% {
           transform: scale(1.05);
-          box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+          box-shadow: 0 0 0 12px rgba(37, 211, 102, 0);
         }
       }
       .animate-subtle-pulse {
         animation: subtle-pulse 2.5s infinite;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--primary-light);
+        border-radius: 2px;
       }
     </style>
   <script type="importmap">

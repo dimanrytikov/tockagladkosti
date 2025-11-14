@@ -5,69 +5,54 @@ const About: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.unobserve(entry.target);
-                }
-            },
-            { threshold: 0.1 }
-        );
-
-        if (sectionRef.current) {
-            observer.observe(sectionRef.current);
-        }
-
-        return () => {
-            if (sectionRef.current) {
-                observer.unobserve(sectionRef.current);
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                setIsVisible(true);
+                observer.unobserve(entry.target);
             }
-        };
+        }, { threshold: 0.1 });
+        if (sectionRef.current) observer.observe(sectionRef.current);
+        return () => { if (sectionRef.current) observer.unobserve(sectionRef.current) };
     }, []);
 
     const features = [
         { 
-            title: "Экспертность", 
-            description: "Наша команда состоит из сертифицированных специалистов с медицинским образованием.",
-            icon: (className: string) => <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            title: "Индивидуальный подход", 
+            description: "Для каждого гостя я разрабатываю персональную программу, учитывая уникальные особенности вашей кожи и пожелания."
         },
         { 
-            title: "Безопасность", 
-            description: "Мы строго соблюдаем санитарные нормы и используем только сертифицированное оборудование.",
-            icon: (className: string) => <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            title: "Внимание к деталям", 
+            description: "Ваш комфорт и спокойствие — мой главный приоритет. От проверенных методик до уютной атмосферы."
         },
         { 
-            title: "Результат", 
-            description: "Наша цель — видимый и долговременный эффект, который превзойдет ваши ожидания.",
-            icon: (className: string) => <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.293 2.293a1 1 0 010 1.414L10 17l-4-4 2.293-2.293a1 1 0 011.414 0L12 14.586l6.293-6.293a1 1 0 011.414 0L21 10" /></svg>
+            title: "Видимый эффект", 
+            description: "Моя работа направлена на достижение стойкого, заметного результата, который будет радовать вас долгое время."
         }
     ];
 
     return (
-        <section ref={sectionRef} id="about" className={`py-16 md:py-24 bg-white fade-in-section ${isVisible ? 'is-visible' : ''}`}>
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-4xl font-bold text-gray-800 mb-6">Ваша точка гладкости и гармонии</h2>
-                    <p className="text-lg text-gray-600 mb-4">
-                        Мы — команда профессионалов, влюбленных в свое дело. Наш салон — это пространство, где современные технологии сочетаются с заботой о каждом клиенте. 
-                    </p>
-                    <p className="text-gray-600 mb-8">
-                        Мы верим, что красота начинается со здоровья кожи, и наша миссия — помочь вам достичь этого, предлагая только самые эффективные и безопасные процедуры. Мы находимся в г. Иркутск, и ждем вас в гости.
-                    </p>
-                </div>
-                <div className="max-w-5xl mx-auto mt-16 grid grid-cols-1 md:grid-cols-3 gap-12">
-                   {features.map(feature => (
-                       <div key={feature.title} className="flex flex-col items-center text-center">
-                           <div className="flex-shrink-0 h-16 w-16 rounded-full bg-[#f9f5f2] flex items-center justify-center border border-[#e0d8d8]">
-                               {feature.icon("h-8 w-8 text-[#a78b8b]")}
-                           </div>
-                           <div className="mt-4">
-                               <h4 className="text-2xl font-semibold text-gray-800 font-serif">{feature.title}</h4>
-                               <p className="mt-2 text-gray-600">{feature.description}</p>
-                           </div>
+        <section ref={sectionRef} id="about" className={`py-24 md:py-40 bg-[--section-bg] overflow-hidden fade-in-section ${isVisible ? 'is-visible' : ''}`}>
+            <div className="container">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 lg:gap-32 items-center">
+                    <div className="relative">
+                       <div className="relative z-10 p-10 lg:p-14 bg-[--background]/70 rounded-3xl border border-[--border]">
+                         <h2 className="text-4xl md:text-5xl font-serif font-bold text-[--text] mb-6 leading-tight">Ваша точка гладкости и гармонии</h2>
+                         <p className="text-lg text-[--gray] leading-relaxed font-light">
+                            Здравствуйте, меня зовут Екатерина. Я верю, что истинная красота — это гармония здоровья и уверенности в себе. Здесь, в уютной атмосфере, вы сможете отвлечься от повседневной суеты и посвятить время себе. Моя задача — деликатно подчеркнуть вашу естественную привлекательность с помощью самых современных и безопасных методик.
+                         </p>
                        </div>
-                   ))}
+                    </div>
+                    <div className="space-y-12">
+                       {features.map((feature, index) => (
+                           <div key={feature.title} className="flex items-start gap-6">
+                               <div className="text-5xl font-serif text-[--primary] font-bold mt-1 opacity-70">0{index + 1}</div>
+                               <div>
+                                   <h3 className="text-3xl font-serif font-semibold text-[--text] mb-3">{feature.title}</h3>
+                                   <p className="text-[--gray] leading-relaxed font-light">{feature.description}</p>
+                               </div>
+                           </div>
+                       ))}
+                    </div>
                 </div>
             </div>
         </section>

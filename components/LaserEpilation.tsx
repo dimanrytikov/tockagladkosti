@@ -1,81 +1,146 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { laserServices } from '../constants';
-import { ServiceCategory } from '../types';
-
-const ServiceTable: React.FC<{ category: ServiceCategory }> = ({ category }) => (
-  <div className="mb-12">
-    <h3 className="text-2xl font-semibold text-[#8a6a6a] mb-6 border-b-2 border-[#d1c1c1] pb-2">{category.title}</h3>
-    <div className="space-y-4">
-      {category.items.map((item, index) => (
-        <div key={index} className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm hover:shadow-md hover:bg-[#fdfbf9] transition-all duration-300">
-          <p className="text-gray-700">{item.name}</p>
-          <p className="font-bold text-lg text-[#8a6a6a]">{item.price}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+import { ServiceItem } from '../types';
+import Cart from './Cart';
+import BookingModal from './BookingModal';
 
 const LaserEpilation: React.FC = () => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+    const [selectedServices, setSelectedServices] = useState<ServiceItem[]>([]);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const [activeCategory, setActiveCategory] = useState<string | null>(laserServices[0].title);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.1 }
-    );
+    const sectionRef = useRef<HTMLElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                setIsVisible(true);
+                observer.unobserve(entry.target);
+            }
+        }, { threshold: 0.1 });
+        if (sectionRef.current) observer.observe(sectionRef.current);
+        return () => { if (sectionRef.current) observer.unobserve(sectionRef.current) };
+    }, []);
 
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
+    const toggleCategory = (categoryTitle: string) => {
+        setActiveCategory(prev => prev === categoryTitle ? null : categoryTitle);
     };
-  }, []);
 
-  const specialOffers = [
-    { title: "Скидка 40% на первый визит!", description: "Попробуйте наши услуги и убедитесь в их эффективности по специальной цене." },
-    { title: "Создай свой идеальный комплекс!", description: "2 зоны: скидка 10% | 3 зоны: 15% | 4 зоны: 20% | 5 и более зон: 25% от общей суммы." },
-    { title: "Для мужчин", description: "Стоимость услуг выше на 30%." }
-  ];
+    const handleSelectService = (service: ServiceItem) => {
+      setSelectedServices(prev =>
+        prev.some(s => s.id === service.id)
+          ? prev.filter(s => s.id !== service.id)
+          : [...prev, service]
+      );
+    };
+  
+    const calculation = useMemo(() => {
+      const hasFullBodyPackage = selectedServices.some(s => s.id === 26);
+      const total = selectedServices.reduce((sum, service) => sum + parseInt(service.price.replace('р', '')), 0);
+      let discount = 0;
+      let discountAmount = 0;
+  
+      if (!hasFullBodyPackage) {
+        const count = selectedServices.length;
+        if (count >= 5) discount = 0.25;
+        else if (count === 4) discount = 0.20;
+        else if (count === 3) discount = 0.15;
+        else if (count === 2) discount = 0.10;
+        discountAmount = Math.floor(total * discount);
+      }
+  
+      const finalPrice = total - discountAmount;
+      return { total, discount, discountAmount, finalPrice };
+    }, [selectedServices]);
 
-  return (
-    <section ref={sectionRef} id="laser" className={`py-16 md:py-24 bg-[#f9f5f2] fade-in-section ${isVisible ? 'is-visible' : ''}`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-800">Лазерная Эпиляция</h2>
-          <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-            Мы используем диодный лазер последнего поколения Mediostar Next Pro — безболезненный и подходящий для всех фототипов кожи.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {specialOffers.map((offer, index) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow-lg border-l-4 border-[#a78b8b]">
-                    <h4 className="font-bold text-xl text-[#8a6a6a] mb-2">{offer.title}</h4>
-                    <p className="text-gray-600">{offer.description}</p>
+    return (
+      <>
+        <section ref={sectionRef} id="laser" className={`py-24 md:py-40 bg-[--background] overflow-hidden fade-in-section ${isVisible ? 'is-visible' : ''}`}>
+          <div className="container">
+            <div className="text-center mb-20 max-w-4xl mx-auto">
+              <h2 className="text-5xl md:text-7xl font-serif font-bold text-[--text]">Лазерная эпиляция</h2>
+              <p className="mt-6 text-xl text-[--gray] font-light">
+                Составьте ваш индивидуальный план процедур. Выберите зоны, а мы автоматически рассчитаем вашу персональную скидку.
+              </p>
+            </div>
+  
+            <div className="flex flex-col lg:flex-row lg:gap-20 items-start">
+              {/* Accordion */}
+              <div className="w-full lg:w-2/3">
+                <div className="border-t border-[--border]">
+                  {laserServices.map((category) => {
+                    const isOpen = activeCategory === category.title;
+                    return (
+                      <div key={category.title} className="border-b border-[--border]">
+                        <button
+                          onClick={() => toggleCategory(category.title)}
+                          className="w-full flex justify-between items-center py-8 text-left"
+                        >
+                          <span className={`text-3xl lg:text-4xl font-serif font-medium transition-colors duration-300 ${isOpen ? 'text-[--primary]' : 'text-[--text]'}`}>{category.title}</span>
+                          <div className="w-8 h-8 flex items-center justify-center">
+                            <svg className={`w-6 h-6 transform transition-transform duration-500 ease-in-out ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </button>
+                        <div className={`overflow-hidden transition-all duration-700 ease-in-out ${isOpen ? 'max-h-[1000px]' : 'max-h-0'}`}>
+                          <div className="pb-6 pt-2 divide-y divide-[--border]">
+                              {category.subCategories.flatMap(sc => sc.items).map(item => (
+                                <div key={item.id} className="flex justify-between items-center py-5">
+                                  <div>
+                                    <p className="text-lg text-[--text]">{item.name}</p>
+                                    {item.note && <p className="text-sm text-[--primary] font-medium mt-2 max-w-md font-sans">{item.note}</p>}
+                                  </div>
+                                  <div className="flex items-center gap-6">
+                                    <span className="font-semibold text-lg text-gray-700 w-24 text-right">{item.price}</span>
+                                    <button
+                                      onClick={() => handleSelectService(item)}
+                                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border ${
+                                        selectedServices.some(s => s.id === item.id) ? 'bg-[--primary] text-white border-transparent' : 'bg-transparent border-[--border] hover:bg-[--section-bg] hover:border-[--primary-light]'
+                                      }`}
+                                    >
+                                      {selectedServices.some(s => s.id === item.id) ?
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg> :
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                      }
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-            ))}
-        </div>
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
-          {laserServices.map((category) => (
-            <ServiceTable key={category.title} category={category} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default LaserEpilation;
+              {/* Cart */}
+              <div className="w-full lg:w-1/3 mt-12 lg:mt-0">
+                  <div className="lg:sticky lg:top-36">
+                    <Cart
+                        selectedServices={selectedServices}
+                        calculation={calculation}
+                        onRemoveService={handleSelectService}
+                        onCheckout={() => setIsBookingModalOpen(true)}
+                        showFirstVisitDiscount={true}
+                        showTieredDiscountHint={true}
+                    />
+                  </div>
+              </div>
+            </div>
+          </div>
+        </section>
+  
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          selectedServices={selectedServices}
+          calculation={calculation}
+        />
+      </>
+    );
+  };
+  
+  export default LaserEpilation;
